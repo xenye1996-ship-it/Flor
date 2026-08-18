@@ -1,0 +1,12 @@
+export const site = {
+  name: "STEM",
+  tagline: "Букеты · Композиции · Доставка",
+  city: "Череповец",
+  address: "Шекснинский пр., 21к1",
+  phone: "+7 911 544-03-50",
+  phoneHref: "tel:+79115440350",
+  whatsappHref: "https://wa.me/79115440350",
+  telegramHref: "https://t.me/+79115440350",
+  vkHref: "https://vk.ru/stemflowerstudio",
+  couponNote: "При предъявлении купона скидка 10%",
+} as const;

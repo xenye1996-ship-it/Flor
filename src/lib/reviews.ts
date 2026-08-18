@@ -1,0 +1,35 @@
+export type PublicReview = {
+  author: string;
+  rating: number;
+  text: string;
+  date: string;
+};
+
+/**
+ * Real customer reviews, copied verbatim from the studio's VK community
+ * (vk.ru/stemflowerstudio → Отзывы). Not tied to a specific product slug
+ * since VK reviews aren't linked to individual bouquets — shown as general
+ * social proof instead of forced onto a product page they may not match.
+ */
+export const publicReviews: PublicReview[] = [
+  {
+    author: "Мария Варнакова",
+    rating: 5,
+    text: "Букет просто супер, самые свежие цветы, купили в пятницу, прошло несколько дней, как новые",
+    date: "25 мая",
+  },
+  {
+    author: "Карина Ильина",
+    rating: 5,
+    text: "Это просто невероятно душевно и красиво! Талантливое исполнение, которое проникает прямо в сердце. Благодарю за эту чудесную композицию. Именинница была счастлива получить такую красоту.",
+    date: "16 апреля",
+  },
+  {
+    author: "Анютка Дианова",
+    rating: 5,
+    text: "Заказывали оформленную корзину с цветами бабушке на юбилей. Оформление выше всех похвал, нежно, красиво, оригинально — учли все пожелания! Очень понравилась девушка, которая оформляла, Наталья — позитивная, приятная, профессионал своего дела.",
+    date: "27 января",
+  },
+];
+
+export const publicReviewsAverage = 5.0;

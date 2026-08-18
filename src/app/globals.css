@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --surface-2: #edf1f0;
+  --ink: #37424a;
+  --ink-soft: #7c8790;
+  --plum: #3f6483;
+  --lavender: #7fa2c2;
+  --lavender-deep: #5c85a8;
+  --pink: #cfdae6;
+  --sage: #7f9884;
+  --line: #dfe4e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b2126;
+    --surface: #232a30;
+    --surface-2: #2b3339;
+    --ink: #eef1f0;
+    --ink-soft: #b9c2c6;
+    --plum: #9fc3de;
+    --lavender: #7fb0d6;
+    --lavender-deep: #9fc3de;
+    --pink: #3f5568;
+    --sage: #9db89f;
+    --line: #3a4349;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-plum: var(--plum);
+  --color-lavender: var(--lavender);
+  --color-lavender-deep: var(--lavender-deep);
+  --color-pink: var(--pink);
+  --color-sage: var(--sage);
+  --color-line: var(--line);
+  --font-display: var(--font-playfair);
+  --font-sans: var(--font-inter);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), -apple-system, "Segoe UI", sans-serif;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, color-mix(in srgb, var(--lavender) 14%, transparent), transparent),
+    radial-gradient(ellipse 800px 500px at 100% 10%, color-mix(in srgb, var(--sage) 10%, transparent), transparent);
+  background-repeat: no-repeat;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 26s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
