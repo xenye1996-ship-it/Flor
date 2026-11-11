@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // включает src/instrumentation.ts (автопривязка Max)
   images: {
     remotePatterns: [
       {

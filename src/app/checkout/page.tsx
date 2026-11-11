@@ -6,13 +6,15 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/lib/cart-context";
-import { getProductBySlug } from "@/lib/products";
+import { usePublicData } from "@/lib/public-data";
+import { reachGoal, YM_GOALS } from "@/lib/metrika";
 
 type Payment = "card" | "sbp" | "cash";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { lines, total, clear } = useCart();
+  const { products } = usePublicData();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -53,8 +55,19 @@ export default function CheckoutPage() {
         return;
       }
       clear();
+      reachGoal(YM_GOALS.orderCreated, {
+        order_id: data.orderId,
+        total: data.total,
+      });
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl as string;
+        return;
+      }
+      const track =
+        (data.trackUrl as string) ||
+        `/order/${encodeURIComponent(data.orderId)}?t=${encodeURIComponent(data.token)}`;
       router.push(
-        `/checkout/success?order=${encodeURIComponent(data.orderId)}&total=${data.total}`,
+        `/checkout/success?order=${encodeURIComponent(data.orderId)}&total=${data.total}&track=${encodeURIComponent(track)}`,
       );
     } catch {
       setError("Не получилось связаться с сервером. Проверьте связь и попробуйте снова.");
@@ -208,7 +221,7 @@ export default function CheckoutPage() {
               </p>
               <div className="mb-4 flex flex-col gap-2 border-b border-line pb-4 text-[13px] text-ink-soft">
                 {lines.map((l) => {
-                  const p = getProductBySlug(l.slug);
+                  const p = products.find((x) => x.slug === l.slug);
                   if (!p) return null;
                   return (
                     <div key={l.slug} className="flex justify-between gap-2">

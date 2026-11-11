@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import { CartProvider } from "@/lib/cart-context";
-import { site } from "@/lib/site";
+import { PublicDataProvider } from "@/lib/public-data";
+import YandexMetrika from "@/components/YandexMetrika";
+import {
+  getPhotos,
+  getProducts,
+  getReviews,
+  getSite,
+} from "@/lib/content/store";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -18,40 +25,49 @@ const inter = Inter({
 
 const siteUrl = "https://срмтест.биз.рус";
 
-const title = `${site.name} — доставка цветов в ${site.city}`;
-const description =
-  "Букеты и композиции ручной сборки. Доставка по Череповцу, открытка в подарок, фото букета перед отправкой.";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title,
-  description,
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  const title = `${site.name} — доставка цветов в ${site.city}`;
+  const description =
+    "Букеты и композиции ручной сборки. Доставка по Череповцу, открытка в подарок, фото букета перед отправкой.";
+  return {
+    metadataBase: new URL(siteUrl),
     title,
     description,
+    openGraph: {
+      title,
+      description,
+      url: siteUrl,
+      siteName: site.name,
+      locale: "ru_RU",
+      type: "website",
+    },
+  };
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [site, products, photos, reviews] = await Promise.all([
+    getSite(),
+    getProducts(),
+    getPhotos(),
+    getReviews(),
+  ]);
+
+  const localBusinessJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FloristShop",
+    name: site.name,
+    telephone: site.phone,
     url: siteUrl,
-    siteName: site.name,
-    locale: "ru_RU",
-    type: "website",
-  },
-};
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: site.address,
+      addressLocality: site.city,
+      addressCountry: "RU",
+    },
+    areaServed: site.city,
+  };
 
-const localBusinessJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FloristShop",
-  name: site.name,
-  telephone: site.phone,
-  url: siteUrl,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: site.address,
-    addressLocality: site.city,
-    addressCountry: "RU",
-  },
-  areaServed: site.city,
-};
-
-export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ru"
@@ -61,11 +77,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(localBusinessJsonLd),
+          }}
         />
       </head>
       <body className="min-h-full flex flex-col bg-bg text-ink">
-        <CartProvider>{children}</CartProvider>
+        <YandexMetrika />
+        <PublicDataProvider value={{ site, products, photos, reviews }}>
+          <CartProvider>{children}</CartProvider>
+        </PublicDataProvider>
       </body>
     </html>
   );

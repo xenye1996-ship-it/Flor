@@ -7,14 +7,94 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sprig from "@/components/Sprig";
 import { useCart } from "@/lib/cart-context";
-import { getProductBySlug } from "@/lib/products";
-import { productPhotos } from "@/lib/photos";
+import { useProductBySlug, useProductPhoto } from "@/lib/public-data";
+import MetrikaCartOpen from "@/components/MetrikaCartOpen";
+
+function CartLineRow({
+  slug,
+  qty,
+  onSetQty,
+  onRemove,
+}: {
+  slug: string;
+  qty: number;
+  onSetQty: (slug: string, qty: number) => void;
+  onRemove: (slug: string) => void;
+}) {
+  const product = useProductBySlug(slug);
+  const photo = useProductPhoto(slug);
+  if (!product) return null;
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.25 }}
+      className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4"
+    >
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+        <Image
+          src={photo}
+          alt=""
+          fill
+          sizes="64px"
+          className="object-cover"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <Link
+          href={`/catalog/${product.slug}`}
+          className="block truncate font-display text-[15.5px] text-ink hover:text-plum"
+        >
+          {product.name}
+        </Link>
+        <p className="text-[12.5px] text-ink-soft">
+          {product.price.toLocaleString("ru-RU")} ₽ / шт
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onSetQty(slug, qty - 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink-soft hover:bg-surface-2"
+          aria-label="Уменьшить количество"
+        >
+          −
+        </button>
+        <span className="w-5 text-center text-[13.5px] tabular-nums">
+          {qty}
+        </span>
+        <button
+          type="button"
+          onClick={() => onSetQty(slug, qty + 1)}
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink-soft hover:bg-surface-2"
+          aria-label="Увеличить количество"
+        >
+          +
+        </button>
+      </div>
+      <p className="w-20 shrink-0 text-right text-[14px] font-semibold text-plum tabular-nums">
+        {(product.price * qty).toLocaleString("ru-RU")} ₽
+      </p>
+      <button
+        type="button"
+        onClick={() => onRemove(slug)}
+        className="shrink-0 text-[12.5px] text-ink-soft hover:text-lavender-deep"
+        aria-label={`Убрать ${product.name} из корзины`}
+      >
+        Убрать
+      </button>
+    </motion.div>
+  );
+}
 
 export default function CartPage() {
   const { lines, setQty, remove, total, count } = useCart();
 
   return (
     <>
+      <MetrikaCartOpen />
       <Header />
       <main className="flex-1">
         <section className="mx-auto max-w-4xl px-5 pb-20 pt-12">
@@ -41,74 +121,15 @@ export default function CartPage() {
             <div className="grid gap-8 md:grid-cols-[1fr_320px]">
               <div className="flex flex-col gap-3">
                 <AnimatePresence initial={false}>
-                {lines.map((line) => {
-                  const product = getProductBySlug(line.slug);
-                  if (!product) return null;
-                  return (
-                    <motion.div
+                  {lines.map((line) => (
+                    <CartLineRow
                       key={line.slug}
-                      layout
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.25 }}
-                      className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4"
-                    >
-                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-surface-2">
-                        <Image
-                          src={productPhotos[product.slug]}
-                          alt=""
-                          fill
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <Link
-                          href={`/catalog/${product.slug}`}
-                          className="block truncate font-display text-[15.5px] text-ink hover:text-plum"
-                        >
-                          {product.name}
-                        </Link>
-                        <p className="text-[12.5px] text-ink-soft">
-                          {product.price.toLocaleString("ru-RU")} ₽ / шт
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setQty(line.slug, line.qty - 1)}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink-soft hover:bg-surface-2"
-                          aria-label="Уменьшить количество"
-                        >
-                          −
-                        </button>
-                        <span className="w-5 text-center text-[13.5px] tabular-nums">
-                          {line.qty}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setQty(line.slug, line.qty + 1)}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink-soft hover:bg-surface-2"
-                          aria-label="Увеличить количество"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <p className="w-20 shrink-0 text-right text-[14px] font-semibold text-plum tabular-nums">
-                        {(product.price * line.qty).toLocaleString("ru-RU")} ₽
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => remove(line.slug)}
-                        className="shrink-0 text-[12.5px] text-ink-soft hover:text-lavender-deep"
-                        aria-label={`Убрать ${product.name} из корзины`}
-                      >
-                        Убрать
-                      </button>
-                    </motion.div>
-                  );
-                })}
+                      slug={line.slug}
+                      qty={line.qty}
+                      onSetQty={setQty}
+                      onRemove={remove}
+                    />
+                  ))}
                 </AnimatePresence>
               </div>
 

@@ -2,31 +2,34 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import Sprig from "@/components/Sprig";
 import Reveal from "@/components/Reveal";
-import { site } from "@/lib/site";
+import Sprig from "@/components/Sprig";
+import { getSite } from "@/lib/content/store";
 
-export const metadata: Metadata = {
-  title: `О нас — ${site.name}`,
-  description: `${site.name} — букеты и композиции ручной сборки в Череповце.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  return {
+    title: `О нас — ${site.name}`,
+    description: `${site.name} — букеты и композиции ручной сборки в Череповце.`,
+  };
+}
 
-const values = [
-  {
-    title: "Собираем сами",
-    desc: "Без посредников и колл-центра — букеты собирает команда мастерской, а не сторонний исполнитель.",
-  },
-  {
-    title: "Знаем город",
-    desc: `Работаем в ${site.city}, поэтому доставляем точно и без лишних звонков «а как вас найти».`,
-  },
-  {
-    title: "Отвечаем за результат",
-    desc: "Не понравился букет — заменим или вернём деньги. Это не рекламная фраза, а обычная практика.",
-  },
-];
-
-export default function AboutPage() {
+export default async function AboutPage() {
+  const site = await getSite();
+  const values = [
+    {
+      title: "Собираем сами",
+      desc: "Без посредников и колл-центра — букеты собирает команда мастерской, а не сторонний исполнитель.",
+    },
+    {
+      title: "Знаем город",
+      desc: `Работаем в ${site.city}, поэтому доставляем точно и без лишних звонков «а как вас найти».`,
+    },
+    {
+      title: "Показываем до отправки",
+      desc: "Перед выездом курьера присылаем фото букета — можно спокойно согласовать детали.",
+    },
+  ];
   return (
     <>
       <Header />
@@ -98,24 +101,69 @@ export default function AboutPage() {
             ))}
           </div>
 
-          <Reveal className="mt-20 flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-line bg-surface p-8 text-center sm:p-10">
-            <Sprig className="h-8 w-28" />
-            <div className="relative aspect-[16/7] w-full overflow-hidden rounded-2xl">
-              <Image
-                src="/shop/bouquet-outdoor.jpg"
-                alt={`Букет из мастерской ${site.name} у входа`}
-                fill
-                sizes="(max-width: 768px) 90vw, 700px"
-                className="object-cover"
-              />
-            </div>
-            <div>
-              <p className="mb-1 font-display text-[16px] text-ink">
-                {site.city}, {site.address}
+        </section>
+
+        <section className="mt-8 border-y border-line bg-surface">
+          <div className="mx-auto flex max-w-5xl flex-col gap-10 px-5 py-16 md:flex-row md:items-center md:gap-14">
+            <Reveal className="flex-1">
+              <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-3xl">
+                <Image
+                  src="/shop/bouquet-outdoor.jpg"
+                  alt={`Букет из мастерской ${site.name} у входа`}
+                  fill
+                  sizes="(max-width: 768px) 90vw, 420px"
+                  className="object-cover object-center"
+                />
+              </div>
+            </Reveal>
+            <Reveal delay={0.1} className="flex-1">
+              <Sprig className="mb-4 h-6 w-24" />
+              <p className="mb-2 text-[13px] font-semibold uppercase tracking-[0.14em] text-lavender-deep">
+                Как нас найти
               </p>
-              <p className="text-[13.5px] text-ink-soft">{site.phone}</p>
-            </div>
-          </Reveal>
+              <h2 className="mb-4 font-display text-[26px] leading-snug text-plum sm:text-[30px]">
+                {site.city}
+                <br />
+                {site.address}
+              </h2>
+              <p className="mb-6 max-w-[36ch] text-[14.5px] leading-relaxed text-ink-soft">
+                Заходите в мастерскую или оформите доставку — свежие букеты
+                собираем каждый день.
+              </p>
+              <a
+                href={site.phoneHref}
+                className="inline-flex rounded-full bg-lavender px-6 py-3 text-[14px] font-semibold text-white transition-colors hover:bg-lavender-deep"
+              >
+                {site.phone}
+              </a>
+              <div className="mt-5 flex flex-wrap gap-4 text-[13.5px]">
+                <a
+                  href={site.vkHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-lavender-deep hover:underline"
+                >
+                  ВКонтакте
+                </a>
+                <a
+                  href={site.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-lavender-deep hover:underline"
+                >
+                  WhatsApp
+                </a>
+                <a
+                  href={site.telegramHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-lavender-deep hover:underline"
+                >
+                  Telegram
+                </a>
+              </div>
+            </Reveal>
+          </div>
         </section>
       </main>
       <Footer />

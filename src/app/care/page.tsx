@@ -3,12 +3,15 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import Sprig from "@/components/Sprig";
-import { site } from "@/lib/site";
+import { getSite } from "@/lib/content/store";
 
-export const metadata: Metadata = {
-  title: `Уход за цветами — ${site.name}`,
-  description: "Как продлить жизнь букету: срез, вода, температура, свет.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  return {
+    title: `Уход за цветами — ${site.name}`,
+    description: "Как продлить жизнь букету: срез, вода, температура, свет.",
+  };
+}
 
 const steps = [
   {
@@ -33,7 +36,8 @@ const steps = [
   },
 ];
 
-export default function CarePage() {
+export default async function CarePage() {
+  const site = await getSite();
   return (
     <>
       <Header />

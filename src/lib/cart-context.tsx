@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getProductBySlug } from "./products";
+import { usePublicData } from "@/lib/public-data";
 
 export type CartLine = {
   slug: string;
@@ -29,10 +29,10 @@ const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "hydrangea-cart";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { products } = usePublicData();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  // Load from localStorage once, on mount.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -43,7 +43,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setHydrated(true);
   }, []);
 
-  // Persist on every change, after initial hydration.
   useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
@@ -82,10 +81,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const total = useMemo(
     () =>
       lines.reduce((sum, l) => {
-        const product = getProductBySlug(l.slug);
+        const product = products.find((p) => p.slug === l.slug);
         return sum + (product ? product.price * l.qty : 0);
       }, 0),
-    [lines],
+    [lines, products],
   );
 
   const value = useMemo(

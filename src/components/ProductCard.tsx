@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import type { Product } from "@/lib/products";
-import { productPhotos } from "@/lib/photos";
+import { useProductPhoto } from "@/lib/public-data";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const photo = useProductPhoto(product.slug);
+
   return (
     <Link
       href={`/catalog/${product.slug}`}
@@ -11,7 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">
         <Image
-          src={productPhotos[product.slug]}
+          src={photo}
           alt={`${product.name} — ${product.line}`}
           fill
           sizes="(max-width: 640px) 50vw, 280px"

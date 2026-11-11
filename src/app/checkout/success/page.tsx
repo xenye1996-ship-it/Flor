@@ -2,14 +2,15 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Sprig from "@/components/Sprig";
-import { site } from "@/lib/site";
+import { getSite } from "@/lib/content/store";
 
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ order?: string; total?: string }>;
+  searchParams: Promise<{ order?: string; total?: string; track?: string }>;
 }) {
-  const { order, total } = await searchParams;
+  const { order, total, track } = await searchParams;
+  const site = await getSite();
 
   return (
     <>
@@ -32,20 +33,29 @@ export default async function CheckoutSuccessPage({
             </p>
           )}
           <p className="mx-auto mb-8 max-w-[46ch] text-[14.5px] leading-relaxed text-ink-soft">
-            Мы свяжемся с вами по указанному телефону в течение 15 минут,
-            чтобы подтвердить заказ и время доставки. Если у вас есть
-            вопросы прямо сейчас — звоните: {" "}
+            Сохраните ссылку на заказ — там будет статус, оплата и фото букета
+            перед отправкой. Мы также свяжемся по телефону. Вопросы:{" "}
             <a href={site.phoneHref} className="text-lavender-deep hover:underline">
               {site.phone}
             </a>
             .
           </p>
-          <Link
-            href="/catalog"
-            className="inline-block rounded-full bg-lavender px-6 py-3 text-[13.5px] font-semibold text-white hover:bg-lavender-deep"
-          >
-            Вернуться в каталог
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {track && (
+              <Link
+                href={track}
+                className="inline-block rounded-full bg-lavender px-6 py-3 text-[13.5px] font-semibold text-white hover:bg-lavender-deep"
+              >
+                Открыть заказ
+              </Link>
+            )}
+            <Link
+              href="/catalog"
+              className="inline-block rounded-full border border-line px-6 py-3 text-[13.5px] font-semibold hover:bg-surface"
+            >
+              В каталог
+            </Link>
+          </div>
         </section>
       </main>
       <Footer />

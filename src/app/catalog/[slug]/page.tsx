@@ -8,11 +8,16 @@ import ProductCard from "@/components/ProductCard";
 import AddToCartButton from "@/components/AddToCartButton";
 import Reveal from "@/components/Reveal";
 import Sprig from "@/components/Sprig";
-import { getProductBySlug, occasionLabels, products } from "@/lib/products";
-import { productPhotos, galleryPhoto, storyPhoto } from "@/lib/photos";
-import { site } from "@/lib/site";
+import { occasionLabels } from "@/lib/products";
+import {
+  getPhotos,
+  getProductBySlug,
+  getProducts,
+  getSite,
+} from "@/lib/content/store";
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const products = await getProducts();
   return products.map((p) => ({ slug: p.slug }));
 }
 
@@ -22,17 +27,21 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const [product, site, photos] = await Promise.all([
+    getProductBySlug(slug),
+    getSite(),
+    getPhotos(),
+  ]);
   if (!product) return {};
   const title = `${product.name} — купить с доставкой в ${site.city} — ${site.name}`;
-  const photo = productPhotos[product.slug];
+  const photo = photos.products[product.slug];
   return {
     title,
     description: product.description,
     openGraph: {
       title,
       description: product.description,
-      images: [{ url: photo }],
+      images: photo ? [{ url: photo }] : undefined,
       type: "website",
     },
   };
@@ -44,15 +53,20 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const [product, products, photos, site] = await Promise.all([
+    getProductBySlug(slug),
+    getProducts(),
+    getPhotos(),
+    getSite(),
+  ]);
   if (!product) notFound();
 
   const similar = products
     .filter((p) => p.slug !== product.slug)
     .slice(0, 3);
 
-  const mainPhoto = productPhotos[product.slug];
-  const thumbs = [mainPhoto, galleryPhoto, storyPhoto, mainPhoto];
+  const mainPhoto = photos.products[product.slug] || photos.hero;
+  const thumbs = [mainPhoto, photos.gallery, photos.story, mainPhoto];
 
   const productJsonLd = {
     "@context": "https://schema.org",

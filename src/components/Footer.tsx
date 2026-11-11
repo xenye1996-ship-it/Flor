@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import Hydrangea from "./Hydrangea";
-import { site } from "@/lib/site";
+import { usePublicData } from "@/lib/public-data";
 
 export default function Footer() {
+  const { site } = usePublicData();
+
   return (
     <footer className="mt-auto border-t border-line bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-2 md:grid-cols-4">
@@ -49,6 +53,9 @@ export default function Footer() {
           </Link>
           <Link href="/privacy" className="hover:text-ink">
             Политика конфиденциальности
+          </Link>
+          <Link href="/login" className="hover:text-ink">
+            Войти
           </Link>
         </div>
 

@@ -75,15 +75,19 @@ h1, h2, h3, .font-display {
 }
 
 .animate-marquee {
-  animation: marquee 26s linear infinite;
+  animation: marquee 100s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  * {
+  *:not(.animate-marquee) {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* иначе 0.01ms превращает бесконечную ленту в «сверхскорость» */
+  .animate-marquee {
+    animation: marquee 140s linear infinite;
   }
 }

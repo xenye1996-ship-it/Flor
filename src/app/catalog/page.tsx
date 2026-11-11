@@ -5,17 +5,19 @@ import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import Sprig from "@/components/Sprig";
 import Reveal from "@/components/Reveal";
-import { products, type Product } from "@/lib/products";
-import { site } from "@/lib/site";
+import { getProducts, getSite } from "@/lib/content/store";
+import type { Product } from "@/lib/products";
 
-const title = `Каталог букетов с доставкой в ${site.city} — ${site.name}`;
-const description = `Купить букет с доставкой в ${site.city}: гортензии, композиции в коробке, букеты до 2000 ₽. Фильтры по поводу и цене.`;
-
-export const metadata: Metadata = {
-  title,
-  description,
-  openGraph: { title, description, type: "website" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  const title = `Каталог букетов с доставкой в ${site.city} — ${site.name}`;
+  const description = `Купить букет с доставкой в ${site.city}: гортензии, композиции в коробке, букеты до 2000 ₽. Фильтры по поводу и цене.`;
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+  };
+}
 
 const filterChips = [
   { label: "Все", key: "all" },
@@ -49,6 +51,7 @@ export default async function CatalogPage({
   searchParams: Promise<{ f?: string }>;
 }) {
   const { f } = await searchParams;
+  const products = await getProducts();
   const activeKey = f && filterChips.some((c) => c.key === f) ? f : "all";
   const filtered = products.filter((p) => matchesFilter(p, activeKey));
 

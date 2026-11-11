@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { site } from "@/lib/site";
+import { getSite } from "@/lib/content/store";
 
-export const metadata: Metadata = {
-  title: `Политика конфиденциальности — ${site.name}`,
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  return {
+    title: `Политика конфиденциальности — ${site.name}`,
+    robots: { index: false },
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const site = await getSite();
   return (
     <>
       <Header />

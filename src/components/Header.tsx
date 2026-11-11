@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Hydrangea from "./Hydrangea";
 import { useCart } from "@/lib/cart-context";
-import { site } from "@/lib/site";
+import { usePublicData } from "@/lib/public-data";
 
 const links = [
   { href: "/catalog", label: "Каталог" },
@@ -15,6 +15,7 @@ const links = [
 
 export default function Header() {
   const { count } = useCart();
+  const { site } = usePublicData();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
@@ -45,6 +46,12 @@ export default function Header() {
           >
             {site.phone}
           </a>
+          <Link
+            href="/login"
+            className="rounded-full border border-line px-3.5 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-surface-2"
+          >
+            Войти
+          </Link>
           <Link
             href="/cart"
             className="relative rounded-full bg-lavender px-4 py-2 text-[13.5px] font-semibold text-white transition-colors hover:bg-lavender-deep"

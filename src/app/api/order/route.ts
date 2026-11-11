@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
-import { getProductBySlug } from "@/lib/products";
+import { getProductBySlug } from "@/lib/content/store";
+import { notifyOrderChannels } from "@/lib/notify/order";
+import {
+  createOrder,
+  createOrderToken,
+} from "@/lib/orders/store";
+import type { OrderStatus } from "@/lib/orders/types";
+import {
+  isTbankConfigured,
+  publicSiteOrigin,
+  tbankInit,
+} from "@/lib/payments/tbank";
 
-type OrderLine = { slug: string; qty: number };
+type OrderLineIn = { slug: string; qty: number };
 
 type OrderPayload = {
-  lines: OrderLine[];
+  lines: OrderLineIn[];
   name: string;
   phone: string;
   address: string;
@@ -31,45 +42,117 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Корзина пуста" }, { status: 400 });
   }
 
-  const items = body.lines
-    .map((l) => {
-      const product = getProductBySlug(l.slug);
-      return product ? { name: product.name, price: product.price, qty: l.qty } : null;
-    })
-    .filter((x): x is { name: string; price: number; qty: number } => x !== null);
+  const items = (
+    await Promise.all(
+      body.lines.map(async (l) => {
+        const product = await getProductBySlug(l.slug);
+        return product
+          ? {
+              slug: product.slug,
+              name: product.name,
+              price: product.price,
+              qty: l.qty,
+            }
+          : null;
+      }),
+    )
+  ).filter(
+    (x): x is { slug: string; name: string; price: number; qty: number } =>
+      x !== null,
+  );
+
+  if (!items.length) {
+    return NextResponse.json({ error: "Товары не найдены" }, { status: 400 });
+  }
 
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
   const orderId = `STEM-${Date.now().toString(36).toUpperCase()}`;
+  const token = createOrderToken();
+  const wantOnline =
+    (body.payment === "card" || body.payment === "sbp") && isTbankConfigured();
 
-  const summary = [
-    `Новый заказ ${orderId}`,
-    ...items.map((i) => `• ${i.name} × ${i.qty} — ${i.price * i.qty} ₽`),
-    `Итого: ${total} ₽`,
-    `Клиент: ${body.name}, ${body.phone}`,
-    `Адрес: ${body.address}`,
-    `Время доставки: ${body.deliveryTime || "не указано"}`,
-    `Открытка: ${body.card || "без открытки"}`,
-    `Оплата: ${body.payment}`,
-  ].join("\n");
+  const status: OrderStatus = wantOnline ? "awaiting_payment" : "new";
 
-  // Forward the order to a Telegram chat when configured. Until TELEGRAM_BOT_TOKEN
-  // and TELEGRAM_CHAT_ID are set in the project's environment variables, orders
-  // are simply logged — wire up a real bot token to start receiving them live.
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (botToken && chatId) {
-    try {
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: summary }),
-      });
-    } catch {
-      // Delivery to Telegram failing shouldn't block order confirmation.
+  let paymentUrl: string | undefined;
+  let paymentId: string | undefined;
+
+  if (wantOnline) {
+    const origin = publicSiteOrigin();
+    const init = await tbankInit({
+      orderId,
+      amountRub: total,
+      description: `Заказ ${orderId} — STEM`,
+      successUrl: `${origin}/order/${orderId}?t=${token}&paid=1`,
+      failUrl: `${origin}/order/${orderId}?t=${token}&paid=0`,
+      notificationUrl: `${origin}/api/payments/tbank/notify`,
+      customerPhone: body.phone,
+    });
+    if (!init.Success || !init.PaymentURL) {
+      return NextResponse.json(
+        {
+          error:
+            init.Message ||
+            init.Details ||
+            "Не удалось создать платёж. Попробуйте другой способ оплаты.",
+        },
+        { status: 502 },
+      );
     }
-  } else {
-    console.log(summary);
+    paymentUrl = init.PaymentURL;
+    paymentId = String(init.PaymentId ?? "");
   }
 
-  return NextResponse.json({ orderId, total });
+  const order = await createOrder({
+    id: orderId,
+    token,
+    status,
+    customer: {
+      name: body.name.trim(),
+      phone: body.phone.trim(),
+      address: body.address.trim(),
+      deliveryTime: body.deliveryTime || "",
+      card: body.card || "",
+    },
+    lines: items,
+    total,
+    payment: {
+      method: body.payment,
+      provider: wantOnline ? "tbank" : "manual",
+      paymentId,
+      paymentUrl,
+      status: wantOnline ? "pending" : "pending",
+    },
+    historyNote: wantOnline
+      ? "Заказ создан, ожидаем оплату"
+      : "Заказ создан как заявка",
+  });
+
+  const summary = [
+    `Новый заказ ${order.id}`,
+    ...order.lines.map(
+      (i) => `• ${i.name} × ${i.qty} — ${i.price * i.qty} ₽`,
+    ),
+    `Итого: ${order.total} ₽`,
+    `Клиент: ${order.customer.name}, ${order.customer.phone}`,
+    `Адрес: ${order.customer.address}`,
+    `Время доставки: ${order.customer.deliveryTime || "не указано"}`,
+    `Открытка: ${order.customer.card || "без открытки"}`,
+    `Оплата: ${order.payment.method}${wantOnline ? " (онлайн Т‑Банк)" : ""}`,
+    `Ссылка клиента: ${publicSiteOrigin()}/order/${order.id}?t=${order.token}`,
+  ].join("\n");
+
+  await notifyOrderChannels({
+    orderId: order.id,
+    total: order.total,
+    summary,
+  });
+
+  return NextResponse.json({
+    orderId: order.id,
+    total: order.total,
+    token: order.token,
+    status: order.status,
+    paymentUrl,
+    trackUrl: `/order/${order.id}?t=${order.token}`,
+  });
 }

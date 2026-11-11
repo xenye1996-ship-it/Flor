@@ -1,0 +1,76 @@
+[
+  {
+    "id": "STEM-MWC7I75W",
+    "token": "pcJNDjc0tiCyGMrbIe2LtmpY",
+    "status": "new",
+    "customer": {
+      "name": "вцв",
+      "phone": "вфыв",
+      "address": "вфыв",
+      "deliveryTime": "",
+      "card": "вф"
+    },
+    "lines": [
+      {
+        "slug": "kompakt",
+        "name": "«Компакт»",
+        "price": 1200,
+        "qty": 1
+      }
+    ],
+    "total": 1200,
+    "payment": {
+      "method": "sbp",
+      "provider": "manual",
+      "status": "pending"
+    },
+    "historyNote": "Заказ создан как заявка",
+    "createdAt": "2026-11-11T14:20:45.380Z",
+    "updatedAt": "2026-11-11T14:20:45.380Z",
+    "history": [
+      {
+        "at": "2026-11-11T14:20:45.380Z",
+        "status": "new",
+        "actor": "system",
+        "note": "Заказ создан как заявка"
+      }
+    ]
+  },
+  {
+    "id": "STEM-MWC398YI",
+    "token": "E8SUErc8qJqV5WW8aHCPRuvz",
+    "status": "new",
+    "customer": {
+      "name": "Тест Клиент",
+      "phone": "+79990001122",
+      "address": "Череповец, тест",
+      "deliveryTime": "сегодня вечер",
+      "card": "С днём рождения"
+    },
+    "lines": [
+      {
+        "slug": "kompakt",
+        "name": "«Компакт»",
+        "price": 1200,
+        "qty": 1
+      }
+    ],
+    "total": 1200,
+    "payment": {
+      "method": "cash",
+      "provider": "manual",
+      "status": "pending"
+    },
+    "historyNote": "Заказ создан как заявка",
+    "createdAt": "2026-11-11T12:21:49.338Z",
+    "updatedAt": "2026-11-11T12:21:49.338Z",
+    "history": [
+      {
+        "at": "2026-11-11T12:21:49.338Z",
+        "status": "new",
+        "actor": "system",
+        "note": "Заказ создан как заявка"
+      }
+    ]
+  }
+]

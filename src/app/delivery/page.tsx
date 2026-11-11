@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
-import { site } from "@/lib/site";
+import { getSite } from "@/lib/content/store";
 
-export const metadata: Metadata = {
-  title: `Доставка и оплата — ${site.name}`,
-  description: "Условия доставки по Череповцу, способы оплаты, ответы на частые вопросы.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+  return {
+    title: `Доставка и оплата — ${site.name}`,
+    description:
+      "Условия доставки по Череповцу, способы оплаты, ответы на частые вопросы.",
+  };
+}
 
 const faq = [
   {
@@ -23,16 +27,13 @@ const faq = [
     a: "Да — СБП по QR-коду, картой онлайн при оформлении заказа или наличными курьеру.",
   },
   {
-    q: "Что если букет не понравится?",
-    a: "Свяжитесь с нами в течение часа после доставки — заменим букет или вернём деньги.",
-  },
-  {
     q: "Доставляете за город?",
     a: "Да, обсудим стоимость и сроки индивидуально — напишите или позвоните перед заказом.",
   },
 ];
 
-export default function DeliveryPage() {
+export default async function DeliveryPage() {
+  const site = await getSite();
   return (
     <>
       <Header />
